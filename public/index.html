@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trailhead Promise | Durable Backcountry Safety</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --accent: #238636;
+      --accent-hover: #2ea043;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --warning: #d29922;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 1.5rem 1rem; line-height: 1.5; }
+    .container { max-width: 650px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 1.5rem; }
+    h1 { color: var(--heading); font-size: 1.8rem; margin-bottom: 0.3rem; }
+    .subtitle { color: #8b949e; font-size: 0.95rem; }
+    .badge { display: inline-block; background: #21262d; border: 1px solid var(--border); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; margin-top: 0.5rem; color: #58a6ff; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    h2 { font-size: 1.15rem; color: var(--heading); margin-bottom: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+    .mic-section { text-align: center; padding: 1.5rem 1rem; }
+    .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--accent); color: white; font-size: 2rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 15px rgba(35, 134, 54, 0.4); }
+    .mic-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    textarea { width: 100%; background: #0d1117; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 0.75rem; font-size: 0.95rem; resize: vertical; min-height: 80px; margin-top: 0.5rem; }
+    .btn { display: inline-block; width: 100%; background: #21262d; color: var(--heading); border: 1px solid var(--border); padding: 0.7rem; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-align: center; margin-top: 0.5rem; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-warning { background: #9e6a03; border-color: var(--warning); }
+    .btn-danger { background: #b62324; border-color: var(--danger); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    pre { background: #0d1117; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; overflow-x: auto; color: #79c0ff; border: 1px solid var(--border); max-height: 200px; }
+    .status-pill { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; }
+    .status-ACTIVE { background: #1f6feb33; color: #58a6ff; }
+    .status-COMPLETED_SAFE { background: #23863633; color: #3fb950; }
+    .status-ESCALATED_ALERT { background: #da363333; color: #f85149; }
+    .timeline { list-style: none; margin-top: 0.75rem; font-size: 0.85rem; }
+    .timeline li { border-left: 2px solid var(--border); padding-left: 0.75rem; margin-bottom: 0.5rem; position: relative; }
+    .timeline li::before { content: ""; width: 8px; height: 8px; background: #58a6ff; border-radius: 50%; position: absolute; left: -5px; top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌲 Trailhead Promise</h1>
+      <p class="subtitle">Screen-Free Backcountry Safety powered by Gemma & Temporal</p>
+      <div class="badge">⚡ Hacktoberfest 2026: Open-Source AI Edition</div>
+    </header>
+
+    <!-- Plan Ingestion Card -->
+    <div class="card" id="inputCard">
+      <h2>1. Speak Your Itinerary</h2>
+      <p style="font-size: 0.85rem; color: #8b949e;">Tap the mic before losing cell signal. Tell us your trail, route, destination, expected return time, and emergency contact.</p>
+      <div class="mic-section">
+        <button id="micBtn" class="mic-btn" onclick="toggleSpeech()">🎙️</button>
+        <div id="micStatus" style="margin-top: 0.5rem; font-size: 0.85rem; color: #8b949e;">Tap to speak</div>
+      </div>
+      <textarea id="transcriptText" placeholder="e.g. Heading up to Eagle Rock via East Ridge Trail, should take about 3 hours, be back by 6:00 PM. Brother John is at 9876543210. Watch out for steep rock scrambles."></textarea>
+      <button class="btn btn-primary" onclick="parseAndStart()">Commit Trailhead Promise</button>
+    </div>
+
+    <!-- Live Workflow Monitor -->
+    <div class="card" id="activeCard" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h2>Active Safety Promise</h2>
+        <span id="statusBadge" class="status-pill status-ACTIVE">ACTIVE</span>
+      </div>
+      <div id="planSummary" style="font-size: 0.9rem; margin-bottom: 0.75rem;"></div>
+
+      <h3 style="font-size: 0.95rem; margin-top: 1rem; color: var(--heading);">Simulate Outdoor Field Events:</h3>
+      <div class="grid" style="margin-top: 0.5rem;">
+        <button class="btn btn-primary" onclick="sendSignal('checkin')">✅ Safe Return (Check In)</button>
+        <button class="btn" onclick="sendSignal('extend')">⏱️ Extend Time (+1h)</button>
+      </div>
+      <div class="grid" style="margin-top: 0.5rem;">
+        <button class="btn btn-warning" onclick="sendSignal('battery')">🪫 Dead-Man's Battery (3%)</button>
+        <button class="btn btn-danger" onclick="pollStatus()">🔄 Refresh Status</button>
+      </div>
+
+      <h3 style="font-size: 0.95rem; margin-top: 1rem; color: var(--heading);">Temporal Event Log</h3>
+      <ul class="timeline" id="eventTimeline"></ul>
+
+      <h3 style="font-size: 0.95rem; margin-top: 1rem; color: var(--heading);">Structured Gemma Schema (Zod Validated)</h3>
+      <pre id="schemaViewer">Loading...</pre>
+    </div>
+  </div>
+
+  <script>
+    let activePlanId = null;
+    let recognition = null;
+    let isRecording = false;
+
+    // Web Speech API for voice recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onstart = () => {
+        isRecording = true;
+        document.getElementById('micBtn').classList.add('recording');
+        document.getElementById('micStatus').innerText = 'Listening... Speak your plan clearly.';
+      };
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        document.getElementById('transcriptText').value = text;
+      };
+      recognition.onend = () => {
+        isRecording = false;
+        document.getElementById('micBtn').classList.remove('recording');
+        document.getElementById('micStatus').innerText = 'Recorded. Ready to commit.';
+      };
+    }
+
+    function toggleSpeech() {
+      if (!recognition) {
+        alert("Speech Recognition not supported on this browser. Type in the box below instead!");
+        return;
+      }
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    async function parseAndStart() {
+      const transcript = document.getElementById('transcriptText').value.trim();
+      if (!transcript) {
+        alert("Please speak or write your hike itinerary.");
+        return;
+      }
+
+      // 1. Parse via Gemma
+      const parseRes = await fetch('/api/plan/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript })
+      });
+      const parseData = await parseRes.json();
+      if (!parseData.success) {
+        alert("Parser error: " + parseData.error);
+        return;
+      }
+
+      // 2. Start Temporal Workflow
+      const startRes = await fetch('/api/workflow/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: parseData.plan })
+      });
+      const startData = await startRes.json();
+      if (!startData.success) {
+        alert("Workflow error: " + startData.error);
+        return;
+      }
+
+      activePlanId = startData.planId;
+      document.getElementById('inputCard').style.display = 'none';
+      document.getElementById('activeCard').style.display = 'block';
+      document.getElementById('schemaViewer').innerText = JSON.stringify(parseData.plan, null, 2);
+      document.getElementById('planSummary').innerHTML = `
+        <strong>Trail:</strong> ${parseData.plan.trailName}<br>
+        <strong>Destination:</strong> ${parseData.plan.destination}<br>
+        <strong>Expected Return:</strong> ${parseData.plan.deadlineTime}<br>
+        <strong>Contact:</strong> ${parseData.plan.emergencyContacts[0].name} (${parseData.plan.emergencyContacts[0].phone})
+      `;
+
+      pollStatus();
+    }
+
+    async function sendSignal(type) {
+      if (!activePlanId) return;
+      let url = `/api/workflow/${activePlanId}/${type}`;
+      let body = {};
+      if (type === 'extend') body = { minutes: 60 };
+      if (type === 'battery') body = { batteryPercent: 3, latitude: 23.3441, longitude: 85.3096 };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      pollStatus();
+    }
+
+    async function pollStatus() {
+      if (!activePlanId) return;
+      const res = await fetch(`/api/workflow/${activePlanId}/state`);
+      const data = await res.json();
+      if (data.success && data.state) {
+        const state = data.state;
+        const badge = document.getElementById('statusBadge');
+        badge.innerText = state.status;
+        badge.className = `status-pill status-${state.status}`;
+
+        const timeline = document.getElementById('eventTimeline');
+        timeline.innerHTML = state.eventLog.map(e => `
+          <li><strong>${new Date(e.timestamp).toLocaleTimeString()}:</strong> [${e.type}] ${e.message}</li>
+        `).join('');
+      }
+    }
+  </script>
+</body>
+</html>
