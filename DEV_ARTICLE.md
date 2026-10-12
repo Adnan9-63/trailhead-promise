@@ -2,7 +2,7 @@
 title: Trailhead Promise: Indestructible Backcountry Safety with Temporal & Gemma
 published: true
 tags: hacktoberfest, opensource, ai, temporal, gemma
-canonical_url: https://github.com/your-username/trailhead-promise
+canonical_url: https://github.com/Adnan9-63/trailhead-promise
 cover_image: https://raw.githubusercontent.com/your-username/trailhead-promise/main/public/cover.png
 ---
 
@@ -143,12 +143,12 @@ To solve this, we implemented the **Dead-Man's Battery Watchdog**:
 You can verify the entire end-to-end pipeline locally right now:
 
 ```bash
-git clone https://github.com/your-username/trailhead-promise.git
+git clone https://github.com/Adnan9-63/trailhead-promise.git
 cd trailhead-promise
 npm install
 npm run simulate
 ```
 
-* **GitHub Repository:** [Trailhead Promise on GitHub](https://github.com/your-username/trailhead-promise)
+* **GitHub Repository:** [Trailhead Promise on GitHub](https://github.com/Adnan9-63/trailhead-promise)
 * **Stack:** Google Gemma, Temporal, Mastra, TypeScript, Sentry, Express.
 * **Theme Alignment:** Week 1 — *"Touch Grass, Don't Stare at Glass"*.
